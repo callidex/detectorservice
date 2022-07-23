@@ -2,6 +2,7 @@ require("rootpath")();
 const express = require("express");
 const router = express.Router();
 const config = require("./config.json");
+const secure = require("./secure.json");
 const { Client } = require('pg');
 
 //import geohash from 'latlon-geohash';
@@ -11,8 +12,8 @@ const { Pool } = require('pg');
 const pool = new Pool({
           user: config.user,
           host: config.host,
-          database: config.database,
-          password: config.password,
+          database: secure.database,
+          password: secure.password,
           port: config.port,
           max: 300,
           idleTimeoutMillis: 30000,
