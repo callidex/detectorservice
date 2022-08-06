@@ -65,8 +65,6 @@ server.on('message', (msg, rinfo) => {
     tempObject.telltale = data.readUInt32LE(152);
     if (tempObject.detectoruid > 1000) {
       console.log("incorrect status, dropping");
-      console.log(` ${data.readUInt32LE(92)}`);
-      console.log(tempObject);
       return null;
     }
   console.log(data);
@@ -87,6 +85,7 @@ server.on('listening', () => {
 server.bind(5000);
 
 const { Pool } = require('pg');
+const { smoothed_z_score } = require("./smooth");
 const pool = new Pool({
   user: config.user,
   host: config.host,
@@ -134,7 +133,10 @@ async function storeSample(tempObject) {
   const client = await pool.connect();
   try {
     console.log(tempObject.detector);
-    await client.query("INSERT INTO sample (detector, data, dmatime, batchid,rtsecs,adcseq) VALUES ($1, $2, $3, $4, $5, $6)", [tempObject.detector, tempObject.data, tempObject.dmatime, tempObject.batchid, tempObject.rtsecs, tempObject.adcseq]);
+    var smoothed = smoothed_z_score(tempObject.data);
+    await client.query("INSERT INTO sample (detector, data, dmatime, batchid,rtsecs,adcseq,smoothed) VALUES ($1, $2, $3, $4, $5, $6, $7)", [tempObject.detector, tempObject.data, tempObject.dmatime, tempObject.batchid, tempObject.rtsecs, tempObject.adcseq, smoothed]);
+
+
 
   }
   catch (err) { console.log(err.stack) }
