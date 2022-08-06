@@ -37,26 +37,40 @@ server.on('message', (msg, rinfo) => {
 
   }
   else if (data[3] == 1 || data[3] == 2) {
-    console.log("Status packet incoming");
+
+    console.log(`Status packet incoming ${data[3]}  len = ${data.length}`);
+    tempObject.type = data[3];
+    tempObject.year = data.readUInt16LE(8);
+    tempObject.month = data[10]; 
+    tempObject.day =  data[11];
+    tempObject.hour = data[12];
+    tempObject.min = data[13];
+    tempObject.sec =  data[14];
     tempObject.clocktrim = data.readUInt32LE(88);
-    tempObject.detectoruid = data.readUInt32LE(92) & 0x3FFFF;
-    tempObject.packetssent = data.readUInt32LE(96);
-    tempObject.triggeroffset = data.readUInt16LE(100);
-    tempObject.triggernoise = data.readUInt16LE(102);
-    tempObject.sysuptime = data.readUInt32LE(104);
-    tempObject.netuptime = data.readUInt32LE(108);
-    tempObject.gpsuptime = data.readUInt32LE(112);
-    tempObject.majorversion = data[116];
-    tempObject.minorversion = data[117];
+    tempObject.detectoruid = data.readUInt16LE(92) & 0x3FFF;
+    tempObject.packetssent = data.readUInt16LE(94);
+
+    tempObject.triggeroffset = data.readUInt16LE(96) & 0xFFF;
+    tempObject.adcbase = data.readUInt16LE(98) & 0x3FFF;
+    
+    tempObject.triggernoise = 0;
+    tempObject.sysuptime = data.readUInt32LE(100);
+    tempObject.netuptime = data.readUInt32LE(104);
+    tempObject.gpsuptime = data.readUInt32LE(108);
+    tempObject.majorversion = data[112];
+    tempObject.minorversion = data[113];
     tempObject.avgadcnoise = data.readUInt16LE(118);
     tempObject.batchid = data[120];
     tempObject.address = rinfo.address;
-
+    tempObject.telltale = data.readUInt32LE(152);
     if (tempObject.detectoruid > 1000) {
       console.log("incorrect status, dropping");
-      console.log("server got msg from ${data.readUInt32LE(92) & 0x3FFFF}:${data.readUInt32LE(92)}");
+      console.log(` ${data.readUInt32LE(92)}`);
+      console.log(tempObject);
       return null;
     }
+  console.log(data);
+    console.log(tempObject);
 
     storeStatus(tempObject);
 
